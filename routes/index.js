@@ -2,6 +2,7 @@ const express = require('express');
 const verifyOAuth = require('../helpers').verifyOAuth;
 const mongoose = require('mongoose');
 const config = require('../config');
+const path = require('path');
 
 const Shop = mongoose.model('Shop');
 
@@ -23,6 +24,17 @@ router.get('/', (req, res, next) => {
   } else {
     return res.render('index', { title: 'Welcome to your example app' });
   }
+});
+
+router.get('/sw/get', (req, res) => {
+    console.log('Received a GET for a sw...');
+    // Give a 20w0
+    res.status(200);
+    // Set the new max scope
+    res.set('Service-Worker-Allowed', '/');
+    // Return the servicec worker
+    res.sendFile(path.join(__dirname, '../sw/sw.js'));
+    console.log('res is', res);
 });
 
 router.get('/error', (req, res) => res.render('error', { message: 'Something went wrong!' }));

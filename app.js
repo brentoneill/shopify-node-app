@@ -39,7 +39,9 @@ app.use(session({
   store: new MongoStore({ mongooseConnection: mongoose.connection }),
 }));
 
-app.use(express.static(path.join(__dirname, 'public')));
+// So we can serve the sw
+app.use(express.static(path.join(__dirname, '/sw')));
+
 // Routes
 app.use('/', index);
 app.use('/install', install);
@@ -59,6 +61,8 @@ app.use((err, req, res) => {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+  console.log(err);
 
   // render the error page
   res.status(err.status || 500);

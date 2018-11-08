@@ -6,6 +6,7 @@ require('dotenv').config({ path: '.env' });
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/purchaseOrders', {
   useMongoClient: true,
 });
+
 mongoose.Promise = require('bluebird');
 
 mongoose.connection.on('error', (err) => {
