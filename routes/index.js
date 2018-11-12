@@ -26,15 +26,14 @@ router.get('/', (req, res, next) => {
   }
 });
 
-router.get('/sw/get', (req, res) => {
+router.get('/get-new', (req, res) => {
     console.log('Received a GET for a sw...');
     // Give a 20w0
     res.status(200);
     // Set the new max scope
     res.set('Service-Worker-Allowed', '/');
     // Return the servicec worker
-    res.sendFile(path.join(__dirname, '../sw/sw.js'));
-    console.log('res is', res);
+    res.sendFile(path.join(__dirname, '../sw/sw-new.js'));
 });
 
 router.get('/error', (req, res) => res.render('error', { message: 'Something went wrong!' }));

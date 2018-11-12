@@ -1,11 +1,10 @@
-const VERSION = 1;
+const VERSION = 2;
 const CACHE_NAME = `${VERSION}-shopify-pwa-cache`;
 const CACHE_URLS = [
   "/",
   "/collections",
   "/collections/all",
-  "/products/293t5lrt",
-  "https://toddreed-dev.myshopify.com/7954858073/digital_wallets/dialog"
+  "/products/293t5lrt"
 ];
 
 /*
@@ -32,12 +31,18 @@ const addToCache = async (cacheName, urls, bulk) => {
   }
 };
 
+/*
+	INSTALL Listener
+*/
 self.addEventListener("install", event => {
-  console.info(`[ServiceWorker] ${VERSION} installing...`);
+  console.info(`[ServiceWorker] ${VERSION} installing...NEW`);
   self.skipWaiting();
   console.info(`[ServiceWorker] C9L-SW ${VERSION} SKIP WAITING`);
 });
 
+/*
+	ACTIVATE listener
+*/
 self.addEventListener("activate", event => {
   console.log(
     `[ACTIVATE ServiceWorker] ${VERSION} activated. Now ready to handle fetches!`
@@ -66,34 +71,48 @@ self.addEventListener("activate", event => {
   );
 });
 
+/*
+	ACTIVATE listener
+*/
 self.addEventListener("fetch", event => {
-  console.log("sw heard the fetch");
+  // Open cache and respond w/ cache response or get new response and save to cache
+  // --from: https://developers.google.com/web/fundamentals/instant-and-offline/offline-cookbook/
+  event.respondWith(
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.match(event.request).then(response => {
+        if (response) {
+          console.log("responding from cache", response, event.request);
+        }
 
-  if (
-    event.request.method === "GET" &&
-    event.request.destination !== "script" &&
-    event.request.destination !== "image" &&
-    event.request.destination !== "style"
-  ) {
-    console.log(event.request);
+        return (
+          response ||
+          fetch(event.request).then(response => {
+            cache.put(event.request, response.clone());
+            return response;
+          })
+        );
+      });
+    })
+  );
+});
+
+/*
+	MESSAGE` listener
+*/
+self.addEventListener("message", event => {
+  const { data } = event;
+
+  // Clear the cache predictively
+  if (data.command === "clearCache") {
+    console.log(
+      "[ServiceWorker] received message to clear old caches!!! >>>",
+      event
+    );
+    clearOldCaches();
   }
 
-  event.respondWith(fetch(event.request));
-
-  // event.respondWith(async function() {
-  //   let cache = await caches.open(CACHE_NAME);
-  //   console.log(cache);
-  //   const cachedResponse = await cache.match(event.request);
-  //
-  //   if (cachedResponse) {
-  //     console.log("there is a cached response");
-  //     console.log(cachedResponse);
-  //     return cachedResponse.clone();
-  //   } else {
-  //     return fetch(event.request).then(fetchedResponse => {
-  //       cache.put(event.request, fetchedResponse.clone());
-  //       return fetchedResponse;
-  //     });
-  //   }
-  // });
+  // Handle caching of pages predictively
+  if (data.command === "addToCache") {
+    addToCache(CACHE_NAME, data.payload, true);
+  }
 });
